@@ -7,7 +7,7 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
 
-class Adapter(photos: MutableList<Photo?>) : RecyclerView.Adapter<Adapter.PhotoViewHolder>() {
+class PhotoAdapter(photos: MutableList<Photo?>) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
     private var photosCount = 0
     private var photos: List<Photo?>? = null
 
@@ -25,9 +25,9 @@ class Adapter(photos: MutableList<Photo?>) : RecyclerView.Adapter<Adapter.PhotoV
         return PhotoViewHolder(v)
     }
 
-    override fun onBindViewHolder(pokemonViewHolder: PhotoViewHolder, i: Int) {
-        pokemonViewHolder.description.text = photos?.get(i)?.description
-        pokemonViewHolder.image.setImageBitmap(photos?.get(i)?.bmp)
+    override fun onBindViewHolder(photoViewHolder: PhotoViewHolder, i: Int) {
+        photoViewHolder.description.text = photos?.get(i)?.description
+        photoViewHolder.image.setImageBitmap(photos?.get(i)?.bmp)
     }
 
     //get number of photos
