@@ -51,7 +51,7 @@ class MainActivity : Activity() {
         photoAdapter = PhotoAdapter(photosList)
         initView()
         addViewListeners()
-        loadNewPage(DEFAULT_SEARCH_PAGE)
+        startNewSearch()
     }
 
     //save grid position and runs orientation check
@@ -98,6 +98,7 @@ class MainActivity : Activity() {
             hideKeyboard()
             photosList.clear()
             photoAdapter?.notifyDataSetChanged()
+            searchTags = searchTextView.text.toString()
             loadNewPage(DEFAULT_SEARCH_PAGE)
         }
     }
@@ -105,7 +106,6 @@ class MainActivity : Activity() {
     //request new search page and load photo from it
     private fun loadNewPage(page: Int) {
         thread {
-            searchTags = searchTextView.text.toString()
             searchPage = page
             if (searchTags.isNotEmpty()) {
                 val photos = SearchService().requestSearch(searchTags, page)
