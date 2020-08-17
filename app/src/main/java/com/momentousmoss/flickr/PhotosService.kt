@@ -31,7 +31,6 @@ class PhotosService {
             .appendPath(serverPath)
             .appendPath(photoPath)
         val photoUrl = URL(urlBuilder.build().toString())
-        Log.i("My", "photoURL " + photoUrl)
         return photoUrl
     }
 }

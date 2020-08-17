@@ -4,18 +4,19 @@ import android.app.Activity
 import android.content.Context
 import android.content.res.Configuration
 import android.content.res.Configuration.ORIENTATION_PORTRAIT
-import android.os.AsyncTask
+import android.graphics.drawable.BitmapDrawable
 import android.os.Bundle
+import android.os.Handler
 import android.support.v7.widget.GridLayoutManager
 import android.support.v7.widget.RecyclerView
-import android.util.Log
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.view.inputmethod.InputMethodManager
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.TextView
 import kotlin.concurrent.thread
-
 
 class MainActivity : Activity() {
 
@@ -31,10 +32,13 @@ class MainActivity : Activity() {
     private var photosList: MutableList<Photo?> = mutableListOf()
     private var photoAdapter : PhotoAdapter? = null
     private var glm = GridLayoutManager(this, gridColumnsPortrait)
-    private var rv: RecyclerView? = null
+    private var gridView: RecyclerView? = null
     private var searchTags : String = String()
-    private var lastScrollPosition : Int? = null
+    private var searchPage : Int = DEFAULT_SEARCH_PAGE
+    private var lastScrollPosition : Int = 0
     private var applyScroll : Boolean = false
+    private var wasScrolled : Boolean = false
+    private var gridScrollY : Int = 0 //vertical scroll
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -44,11 +48,13 @@ class MainActivity : Activity() {
     }
 
     override fun onConfigurationChanged(newConfig: Configuration) {
-        lastScrollPosition = glm.findFirstCompletelyVisibleItemPosition();
-        applyScroll = true
+        if (wasScrolled) {
+            wasScrolled = false
+            lastScrollPosition = glm.findFirstCompletelyVisibleItemPosition()
+            applyScroll = true
+        }
         changeGridColumnsCount(newConfig.orientation)
         super.onConfigurationChanged(newConfig)
-        Log.i("My", "scroll to " + lastScrollPosition)
     }
 
     private fun changeGridColumnsCount(orientation: Int) {
@@ -60,20 +66,29 @@ class MainActivity : Activity() {
             }
     }
 
-    private lateinit var scrollListener: RecyclerView.OnScrollListener
-
     private fun initView() {
         photoAdapter = PhotoAdapter(photosList)
-        rv = findViewById<View>(R.id.gridPhotos) as RecyclerView
-        rv?.layoutManager = glm
-        rv?.adapter = photoAdapter
+        gridView = findViewById<View>(R.id.gridPhotos) as RecyclerView
+        gridView?.layoutManager = glm
+        gridView?.adapter = photoAdapter
+        gridView?.addOnScrollListener(scrollListener)
+
+        gridView?.addOnItemTouchListener(
+            RecyclerItemClickListener(this, object : RecyclerItemClickListener.OnItemClickListener {
+                override fun onItemClick(view: View?, position: Int) {
+                    fillFullPhoto(view)
+                }
+            })
+        )
 
         val searchBtn = findViewById<ImageButton>(R.id.buttonSearch)
         searchBtn.setOnClickListener {
             startNewSearch()
         }
+
+        //to work with search button in keyboard
         val searchTextView = findViewById<EditText>(R.id.searchTextView)
-        searchTextView.setOnEditorActionListener { textView, action, keyEvent ->
+        searchTextView.setOnEditorActionListener { _, action, _ ->
             if ((action == EditorInfo.IME_ACTION_SEARCH)) {
                 startNewSearch()
                 true
@@ -82,20 +97,29 @@ class MainActivity : Activity() {
             }
         }
 
-        //initializing new downloads by scrolling
-        scrollListener = object : RecyclerView.OnScrollListener() {
-            var element_old_number = 0
-            override fun onScrolled(view: RecyclerView, dx: Int, dy: Int) {
-                if (applyScroll) {
-                    rv?.scrollToPosition(lastScrollPosition ?: 0)
-                    Log.i("My", "scrolled to " + lastScrollPosition)
-                    applyScroll = false
-                }
-                val element_number = glm.findLastCompletelyVisibleItemPosition()
-                if (element_number != element_old_number) element_old_number = element_number
-                }
-            }
-        rv?.addOnScrollListener(scrollListener)
+        val photoFullView = findViewById<View>(R.id.photoLayoutFull)
+        photoFullView.setOnClickListener {
+            hideFullPhoto()
+        }
+    }
+
+    private fun fillFullPhoto(clickedItemView: View?) {
+        if (gridView != null && clickedItemView != null) {
+            val itemBitmap = ((clickedItemView.findViewById<ImageView>(R.id.photoView)).drawable as BitmapDrawable).bitmap
+            val itemTitle = (clickedItemView.findViewById<TextView>(R.id.photoTitle)).text
+            findViewById<ImageView>(R.id.photoViewFull).setImageBitmap(itemBitmap)
+            findViewById<TextView>(R.id.photoTitleFull).text = itemTitle
+
+            showFullPhoto()
+        }
+    }
+
+    private fun showFullPhoto() {
+        findViewById<View>(R.id.photoLayoutFull).visibility = View.VISIBLE
+    }
+
+    private fun hideFullPhoto() {
+        findViewById<View>(R.id.photoLayoutFull).visibility = View.INVISIBLE
     }
 
     private fun startNewSearch() {
@@ -108,14 +132,10 @@ class MainActivity : Activity() {
         }
     }
 
-    private fun hideKeyboard(view: View) {
-        val imm = this.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
-        imm.hideSoftInputFromWindow(view.windowToken, 0)
-    }
-
     private fun loadNewPage(page: Int) {
         thread {
             searchTags = findViewById<EditText>(R.id.searchTextView).text.toString()
+            searchPage = page
             if (searchTags.isNotEmpty()) {
                 val photos = SearchService().requestSearch(searchTags, page)
                 if (photos?.photo != null) {
@@ -131,7 +151,38 @@ class MainActivity : Activity() {
         runOnUiThread {
             photosList.add(photo)
             photoAdapter?.notifyItemInserted(photoAdapter?.itemCount ?: 0)
-            Log.i("My", "loaded added " + photoAdapter?.itemCount)
+        }
+    }
+
+    private fun hideKeyboard(view: View) {
+        val imm = this.getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
+    private var scrollListener = object : RecyclerView.OnScrollListener() {
+        override fun onScrolled(gridView: RecyclerView, dx: Int, dy: Int) {
+            val lastVisibleItemPosition = glm.findLastCompletelyVisibleItemPosition() + 1
+            val requestedItemsSize = searchPage * pageSize
+            val photosListSize = photosList.size
+            if (lastVisibleItemPosition == requestedItemsSize && photosListSize == lastVisibleItemPosition) {
+                searchPage++
+                loadNewPage(searchPage)
+            }
+
+            if (applyScroll) {
+                gridScrollY = dy
+                applyScroll = false
+                gridView.scrollToPosition(lastScrollPosition)
+
+                //sometimes scroll have bug with position using Handler will fix that
+                Handler().post {
+                    gridView.adapter?.notifyDataSetChanged()
+                }
+            } else if (gridScrollY != dy) {
+                //used to catch real scroll (on orientation change - scroll without dy change)
+                gridScrollY = dy
+                wasScrolled = true
+            }
         }
     }
 }

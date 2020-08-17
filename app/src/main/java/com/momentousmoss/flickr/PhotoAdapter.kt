@@ -16,7 +16,7 @@ class PhotoAdapter(photos: MutableList<Photo?>) : RecyclerView.Adapter<PhotoAdap
     }
 
     class PhotoViewHolder internal constructor(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var description: TextView = itemView.findViewById<View>(R.id.photoDescription) as TextView
+        var title: TextView = itemView.findViewById<View>(R.id.photoTitle) as TextView
         var image: ImageView = itemView.findViewById<View>(R.id.photoView) as ImageView
     }
 
@@ -26,7 +26,7 @@ class PhotoAdapter(photos: MutableList<Photo?>) : RecyclerView.Adapter<PhotoAdap
     }
 
     override fun onBindViewHolder(photoViewHolder: PhotoViewHolder, i: Int) {
-        photoViewHolder.description.text = photos?.get(i)?.description
+        photoViewHolder.title.text = photos?.get(i)?.title
         photoViewHolder.image.setImageBitmap(photos?.get(i)?.bmp)
     }
 

@@ -18,7 +18,6 @@ class SearchService {
             val searchInputStream = searchUrl.openConnection().getInputStream()
             val searchJson =
                 JsonParser().parse(InputStreamReader(searchInputStream, utf8)) as JsonObject
-            Log.i("My", "jsonObject " + searchJson)
             Gson().fromJson(searchJson, JsonService.PhotosSearchResponse::class.java).photos
         } catch (e: Exception) {
             null
@@ -40,10 +39,10 @@ class SearchService {
             .appendQueryParameter(JsonService.PhotosSearchRequest::api_key.name, photosSearchJson.api_key)
             .appendQueryParameter(JsonService.PhotosSearchRequest::tags.name, photosSearchJson.tags)
             .appendQueryParameter(JsonService.PhotosSearchRequest::per_page.name, photosSearchJson.per_page.toString())
+            .appendQueryParameter(JsonService.PhotosSearchRequest::page.name, photosSearchJson.page.toString())
             .appendQueryParameter(JsonService.PhotosSearchRequest::format.name, photosSearchJson.format)
             .appendQueryParameter(JsonService.PhotosSearchRequest::nojsoncallback.name, (if (photosSearchJson.nojsoncallback) 1 else 0).toString())
         val searchUrl = URL(urlBuilder.build().toString())
-        Log.i("My", "searchUrl " + searchUrl)
         return searchUrl
     }
 
