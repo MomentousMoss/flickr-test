@@ -1,7 +1,6 @@
 package com.momentousmoss.flickr
 
 import android.net.Uri
-import android.util.Log
 import android.util.Xml
 import com.google.gson.Gson
 import com.google.gson.JsonObject
@@ -9,6 +8,7 @@ import com.google.gson.JsonParser
 import java.io.InputStreamReader
 import java.net.URL
 
+@Suppress("DEPRECATION")
 class SearchService {
     private val utf8 = Xml.Encoding.UTF_8.name
 
@@ -42,8 +42,7 @@ class SearchService {
             .appendQueryParameter(JsonService.PhotosSearchRequest::page.name, photosSearchJson.page.toString())
             .appendQueryParameter(JsonService.PhotosSearchRequest::format.name, photosSearchJson.format)
             .appendQueryParameter(JsonService.PhotosSearchRequest::nojsoncallback.name, (if (photosSearchJson.nojsoncallback) 1 else 0).toString())
-        val searchUrl = URL(urlBuilder.build().toString())
-        return searchUrl
+        return URL(urlBuilder.build().toString())
     }
 
     private fun getPhotosSearchJson(tags: String, page: Int): JsonService.PhotosSearchRequest {

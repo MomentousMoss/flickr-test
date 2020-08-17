@@ -2,10 +2,10 @@ package com.momentousmoss.flickr
 
 import android.graphics.BitmapFactory
 import android.net.Uri
-import android.util.Log
 import java.net.URL
 
 class PhotosService {
+    //requests image and return Photo with title and bitmap
     fun requestPhoto(jsonPhoto: JsonService.Photo): Photo {
         val photoUrl = getPhotoUrl(jsonPhoto)
         val photoBitmap =
@@ -20,6 +20,7 @@ class PhotosService {
         )
     }
 
+    //generate url base on photo json
     private fun getPhotoUrl(photo: JsonService.Photo): URL {
         val scheme = "https"
         val authority = "farm" + photo.farm + ".staticflickr.com"
@@ -30,7 +31,6 @@ class PhotosService {
             .authority(authority)
             .appendPath(serverPath)
             .appendPath(photoPath)
-        val photoUrl = URL(urlBuilder.build().toString())
-        return photoUrl
+        return URL(urlBuilder.build().toString())
     }
 }

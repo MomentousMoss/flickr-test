@@ -8,6 +8,7 @@ import android.view.GestureDetector.SimpleOnGestureListener
 import android.view.MotionEvent
 import android.view.View
 
+//detects click position and return view of touch for selected parent
 class RecyclerItemClickListener(context: Context?, private val mListener: OnItemClickListener?) : OnItemTouchListener {
     private var mGestureDetector: GestureDetector = GestureDetector(context, object : SimpleOnGestureListener() {
         override fun onSingleTapUp(e: MotionEvent): Boolean {
@@ -19,9 +20,9 @@ class RecyclerItemClickListener(context: Context?, private val mListener: OnItem
         fun onItemClick(view: View?, position: Int)
     }
 
-    override fun onInterceptTouchEvent(view: RecyclerView, e: MotionEvent): Boolean {
-        val childView = view.findChildViewUnder(e.x, e.y)
-        if (childView != null && mListener != null && mGestureDetector.onTouchEvent(e)) {
+    override fun onInterceptTouchEvent(view: RecyclerView, event: MotionEvent): Boolean {
+        val childView = view.findChildViewUnder(event.x, event.y)
+        if (childView != null && mListener != null && mGestureDetector.onTouchEvent(event)) {
             mListener.onItemClick(childView, view.getChildAdapterPosition(childView))
             return true
         }
