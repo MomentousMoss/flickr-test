@@ -77,8 +77,8 @@ class MainActivity : Activity() {
 
     private fun initView() {
         searchTextView = findViewById(R.id.searchTextView)
-        searchBtn = findViewById(R.id.buttonSearch)
-        photoLayoutFull = findViewById(R.id.photoLayoutFull)
+        searchBtn = findViewById(R.id.searchButton)
+        photoLayoutFull = findViewById(R.id.photoFullInclude)
         recyclerView = findViewById(R.id.gridPhotos)
         recyclerView.layoutManager = gridLayoutManager
         recyclerView.adapter = photoAdapter
