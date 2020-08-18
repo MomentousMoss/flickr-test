@@ -33,7 +33,7 @@ class MainActivity : Activity() {
     private var photosList: MutableList<Photo?> = mutableListOf()
     private var photoAdapter : PhotoAdapter? = null
     private var gridLayoutManager = GridLayoutManager(this, gridColumnsPortrait)
-    private var searchTags : String = String()
+    private var searchText : String = String()
     private var searchPage : Int = DEFAULT_SEARCH_PAGE
     private var lastScrollPosition : Int = 0
     private var applyScroll : Boolean = false
@@ -94,11 +94,11 @@ class MainActivity : Activity() {
 
     //start search for the first page
     private fun startNewSearch() {
-        if (searchTextView.text?.toString() != searchTags) {
+        if (searchTextView.text?.toString() != searchText) {
             hideKeyboard()
             photosList.clear()
             photoAdapter?.notifyDataSetChanged()
-            searchTags = searchTextView.text.toString()
+            searchText = searchTextView.text.toString()
             loadNewPage(DEFAULT_SEARCH_PAGE)
         }
     }
@@ -107,8 +107,8 @@ class MainActivity : Activity() {
     private fun loadNewPage(page: Int) {
         thread {
             searchPage = page
-            if (searchTags.isNotEmpty()) {
-                val photos = SearchService().requestSearch(searchTags, page)
+            if (searchText.isNotEmpty()) {
+                val photos = SearchService().requestSearch(searchText, page)
                 if (photos?.photo != null) {
                     for (jsonPhoto in photos.photo!!) {
                         thread {

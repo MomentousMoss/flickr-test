@@ -12,8 +12,8 @@ import java.net.URL
 class SearchService {
     private val utf8 = Xml.Encoding.UTF_8.name
 
-    fun requestSearch(tags: String, page: Int): JsonService.Photos? {
-        val searchUrl = getSearchUrl(tags, page)
+    fun requestSearch(searchText: String, page: Int): JsonService.Photos? {
+        val searchUrl = getSearchUrl(searchText, page)
         return try {
             val searchInputStream = searchUrl.openConnection().getInputStream()
             val searchJson =
@@ -24,12 +24,12 @@ class SearchService {
         }
     }
 
-    private fun getSearchUrl(tags: String, page: Int): URL {
+    private fun getSearchUrl(searchText: String, page: Int): URL {
         val scheme = "https"
         val authority = "www.flickr.com"
         val servicesPath = "services"
         val restPath = "rest"
-        val photosSearchJson = getPhotosSearchJson(tags, page)
+        val photosSearchJson = getPhotosSearchJson(searchText, page)
         val urlBuilder = Uri.Builder()
             .scheme(scheme)
             .authority(authority)
@@ -37,7 +37,7 @@ class SearchService {
             .appendPath(restPath)
             .appendQueryParameter(JsonService.PhotosSearchRequest::method.name, JsonService.PhotosSearchRequest().method)
             .appendQueryParameter(JsonService.PhotosSearchRequest::api_key.name, photosSearchJson.api_key)
-            .appendQueryParameter(JsonService.PhotosSearchRequest::tags.name, photosSearchJson.tags)
+            .appendQueryParameter(JsonService.PhotosSearchRequest::text.name, photosSearchJson.text)
             .appendQueryParameter(JsonService.PhotosSearchRequest::per_page.name, photosSearchJson.per_page.toString())
             .appendQueryParameter(JsonService.PhotosSearchRequest::page.name, photosSearchJson.page.toString())
             .appendQueryParameter(JsonService.PhotosSearchRequest::format.name, photosSearchJson.format)
@@ -45,10 +45,10 @@ class SearchService {
         return URL(urlBuilder.build().toString())
     }
 
-    private fun getPhotosSearchJson(tags: String, page: Int): JsonService.PhotosSearchRequest {
+    private fun getPhotosSearchJson(searchText: String, page: Int): JsonService.PhotosSearchRequest {
         return JsonService.PhotosSearchRequest().apply {
             api_key = MainActivity.apiKey
-            this.tags = tags
+            this.text = searchText
             per_page = MainActivity.pageSize
             this.page = page
         }

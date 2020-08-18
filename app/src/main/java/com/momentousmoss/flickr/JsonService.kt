@@ -13,7 +13,7 @@ open class JsonService {
         val method : String = METHOD_SEARCH
         @SerializedName("api_key")
         var api_key : String? = null
-        var tags : String? = null
+        var text : String? = null
         @SerializedName("per_page")
         var per_page : Int = DEFAULT_SEARCH_PERPAGE
         var page : Int = DEFAULT_SEARCH_PAGE
